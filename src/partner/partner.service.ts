@@ -49,7 +49,7 @@ export class PartnerService {
       where['OR'] = [
         { name: { contains: search, mode: 'insensitive' } },
         { email: { contains: search, mode: 'insensitive' } },
-        { website: { contains: search, mode: 'insensitive' } },
+        { websiteUrl: { contains: search, mode: 'insensitive' } },
       ];
     }
     const [content, totalElements] = await Promise.all([

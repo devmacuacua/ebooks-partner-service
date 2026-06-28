@@ -62,7 +62,7 @@ export class PartnerBookService {
 
     // Fetch book details from catalog service
     const { data } = await axios.post(`${this.catalogUrl}/books/batch`, { ids: bookIds });
-    const catalogBooks: any[] = data.books || [];
+    const catalogBooks: any[] = Array.isArray(data) ? data : (data.books || []);
 
     // Filter by category if requested
     const filtered = category
