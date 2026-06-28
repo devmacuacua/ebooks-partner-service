@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  ForbiddenException,
   Get,
   Param,
   Patch,
@@ -79,7 +80,7 @@ export class PartnerController {
     @Query('status') status?: string,
   ) {
     if (req.headers['x-user-role'] !== 'ADMIN') {
-      throw new Error('Forbidden');
+      throw new ForbiddenException();
     }
     const validStatuses = Object.values(PartnerStatus) as string[];
     const statusEnum = status && validStatuses.includes(status)
@@ -95,7 +96,7 @@ export class PartnerController {
     @Body('status') status: PartnerStatus,
   ) {
     if (req.headers['x-user-role'] !== 'ADMIN') {
-      throw new Error('Forbidden');
+      throw new ForbiddenException();
     }
     return this.partnerService.setStatus(id, status);
   }
