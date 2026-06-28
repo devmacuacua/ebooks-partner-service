@@ -1,0 +1,118 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Partner {
+  id               String        @id @default(uuid())
+  userId           String        @unique
+  name             String
+  email            String        @unique
+  websiteUrl       String?
+  description      String?
+  logoUrl          String?
+  status           PartnerStatus @default(PENDING)
+  revenueSharePct  Int           @default(80)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  apiKeys       ApiKey[]
+  books         PartnerBook[]
+  webhooks      Webhook[]
+  revenueShares RevenueShare[]
+
+  @@map("partners")
+}
+
+enum PartnerStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+}
+
+model ApiKey {
+  id            String    @id @default(uuid())
+  partnerId     String
+  partner       Partner   @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  name          String
+  publicKey     String    @unique
+  secretKeyHash String
+  lastUsedAt    DateTime?
+  revokedAt     DateTime?
+  createdAt     DateTime  @default(now())
+
+  @@map("api_keys")
+}
+
+model PartnerBook {
+  id          String   @id @default(uuid())
+  partnerId   String
+  partner     Partner  @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  bookId      String
+  enabled     Boolean  @default(true)
+  customPrice Decimal? @db.Decimal(10, 2)
+  createdAt   DateTime @default(now())
+
+  @@unique([partnerId, bookId])
+  @@map("partner_books")
+}
+
+model Webhook {
+  id        String    @id @default(uuid())
+  partnerId String
+  partner   Partner   @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  url       String
+  events    String[]
+  secret    String
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now())
+
+  deliveries WebhookDelivery[]
+
+  @@map("webhooks")
+}
+
+model WebhookDelivery {
+  id            String         @id @default(uuid())
+  webhookId     String
+  webhook       Webhook        @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+  event         String
+  payload       Json
+  status        DeliveryStatus @default(PENDING)
+  attempts      Int            @default(0)
+  lastAttemptAt DateTime?
+  nextAttemptAt DateTime?
+  responseCode  Int?
+  responseBody  String?
+  createdAt     DateTime       @default(now())
+
+  @@map("webhook_deliveries")
+}
+
+enum DeliveryStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  EXHAUSTED
+}
+
+model RevenueShare {
+  id             String    @id @default(uuid())
+  partnerId      String
+  partner        Partner   @relation(fields: [partnerId], references: [id])
+  orderId        String
+  orderItemId    String    @unique
+  bookId         String
+  bookTitle      String
+  grossAmount    Decimal   @db.Decimal(10, 2)
+  partnerAmount  Decimal   @db.Decimal(10, 2)
+  platformAmount Decimal   @db.Decimal(10, 2)
+  currency       String    @default("MZN")
+  settledAt      DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@map("revenue_shares")
+}
