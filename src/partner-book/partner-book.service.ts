@@ -78,6 +78,7 @@ export class PartnerBookService {
 
     return filtered.map((book) => ({
       ...book,
+      coverUrl: book.coverImage ?? null,
       price: priceMap.get(book.id) ?? book.price,
     }));
   }
